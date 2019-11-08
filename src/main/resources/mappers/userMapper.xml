@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace用接口的全路径作为命名空间 -->
+<mapper namespace="com.pms.dao.UserDao">
+
+	<!-- 开启二级缓存 -->
+	<cache readOnly="true"/>
+	<!-- 一对多关联查询:连接查询用户表、角色表、权限表信息 -->
+	<resultMap type="User" id="userMap" autoMapping="true">
+		<id column="id" property="id"/>
+		<collection property="roles" ofType="Role" autoMapping="true">
+			<id column="role_id" property="role_id"/>
+			<collection property="menus" ofType="Menu" autoMapping="true">
+				<id column="menu_id" property="menu_id"/>
+				<collection property="submenu" ofType="Menu">
+					<id column="sid" property="menu_id"/>
+					<result column="sname" property="menu_name"/>
+					<result column="spid" property="parent_id"/>
+					<result column="sicon" property="menu_icon"/>
+					<result column="surl" property="menu_url"/>
+					<result column="sflag" property="menu_flag"/>
+				</collection>
+			</collection>
+		</collection>
+	</resultMap>
+
+	<!-- 一对多关联查询:连接查询用户表和角色表信息 -->
+	<resultMap type="User" id="userRoleMap" autoMapping="true">
+		<id column="id" property="id" />
+		<collection property="roles" ofType="Role" autoMapping="true">
+			<id column="role_id" property="role_id" />
+			<result column="descList" property="descList"/>
+			<result column="roleName" property="roleName"/>
+		</collection>
+	</resultMap>
+
+	<!-- 添加用户信息 -->
+	<insert id="add" parameterType="User" useGeneratedKeys="true" keyProperty="id">
+		insert into t_user(username,password,phone,nickname,email)
+		values(#{username},#{password},#{phone},#{nickname},#{email})
+	</insert>
+	
+	<!-- 分配角色 -->
+	<insert id="assignRole" parameterType="map">
+		insert into t_user_role(userid,roleid)
+		values(#{userid},#{roleid})
+	</insert>
+
+	<!-- 删除用户信息 -->
+	<delete id="del" parameterType="java.lang.Integer">
+		delete from t_user where id = #{id}
+	</delete>
+	
+	<!-- 删除角色 -->
+	<delete id="delRole" parameterType="java.lang.Integer">
+		delete from t_user_role where userid = #{id}
+	</delete>
+
+	<!-- 修改用户信息 -->
+	<update id="update" parameterType="User">
+		update t_user
+		<set>
+			<if test="username != null and username != ''">
+				username = #{username},
+			</if>
+			<if test="password != null and password != ''">
+				password = #{password},
+			</if>
+			<if test="phone != null and phone != ''">
+				phone = #{phone},
+			</if>
+			<if test="nickname != null and nickname != ''">
+				nickname = #{nickname},
+			</if>
+			<if test="email != null and email != ''">
+				email = #{email}
+			</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<!-- 连接查询用户表、角色表、权限表信息 -->
+	<select id="loadUser" parameterType="java.lang.Integer" resultMap="userMap">
+		select *,m1.menu_id sid,m1.menu_name sname,m1.parent_id spid,m1.menu_icon sicon,m1.menu_url surl,m1.menu_flag sflag from t_user u
+		left join t_user_role ur on u.id = ur.userid
+		left join t_role r on ur.roleid = r.role_id
+		left join t_role_menu rm on r.role_id = rm.roleid
+		left join t_menu m on rm.menuid = m.menu_id
+		left join t_menu m1 on m.menu_id = m1.parent_id
+		where m.parent_id = 0
+		and u.id = #{id}
+		group by m1.menu_id
+	</select>
+	
+	<!-- 根据id查询信息用于main主页 -->
+	<select id="loadToMain" parameterType="java.lang.Integer" resultMap="userRoleMap">
+		select * from t_user u
+		left join t_user_role ur on u.id = ur.userid
+		left join t_role r on ur.roleid = r.role_id
+		where u.id = #{id}
+	</select>
+	
+	<select id="notinload" resultType="Role">
+		select * from t_role where role_id not in
+		<foreach collection="list" item="item" index="i" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+	<select id="inload" parameterType="java.lang.Integer" resultMap="userRoleMap">
+		select * from t_user u
+		left join t_user_role ur on u.id = ur.userid
+		left join t_role r on ur.roleid = r.role_id
+		where u.id = #{id}
+	</select>
+
+	<!-- 连接查询用户表和角色表信息 -->
+	<!-- 根据id查询用户信息 -->
+	<select id="load" parameterType="java.lang.Integer" resultMap="userRoleMap">
+		select *,GROUP_CONCAT(r.role_description) descList,GROUP_CONCAT(r.role_name) roleName from t_user u
+		left join t_user_role ur on u.id = ur.userid
+		left join t_role r on ur.roleid = r.role_id
+		where u.id = #{id}
+		group by u.id
+	</select>
+
+	<!-- 查询全部用户信息 -->
+	<select id="list" resultMap="userRoleMap">
+		select *,GROUP_CONCAT(r.role_description) descList,GROUP_CONCAT(r.role_name) roleName from t_user u
+		left join t_user_role ur on u.id = ur.userid
+		left join t_role r on ur.roleid = r.role_id
+		group by u.id
+	</select>
+	
+	<!-- 登录查询 -->
+	<select id="login" parameterType="User" resultType="User">
+		select * from t_user
+		<where>
+			<if test="username != null and username != ''">
+				username = #{username} and
+			</if>
+			<if test="password != null and password != ''">
+				password = #{password}
+			</if>
+		</where>
+	</select>
+
+</mapper>
