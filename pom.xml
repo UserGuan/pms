@@ -22,7 +22,7 @@
     <!-- aspectj—springAOP依赖版本号 -->
     <aspect.version>1.9.1</aspect.version>
     <!-- json包jackson-annotations版本号 -->
-    <jackson.version>2.9.8</jackson.version>
+    <jackson.version>2.10.0</jackson.version>
   </properties>
 
   <dependencies>
