@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pms.dao.RoleDao">
+
+	<resultMap type="Role" id="roleMap" autoMapping="true">
+		<id column="role_id" property="role_id"/>
+		<collection property="menus" ofType="Menu" autoMapping="true">
+			<id column="menu_id" property="menu_id"/>
+			<result column="menuNameList" property="menuNameList"/>
+			<result column="menuId" property="menuId"/>
+			<result column="parentId" property="parentId"/>
+			<result column="menuFlag" property="menuFlag"/>
+		</collection>
+	</resultMap>
+	
+	<!-- 添加角色信息 -->
+	<insert id="add" parameterType="Role" useGeneratedKeys="true" keyProperty="role_id">
+		insert into t_role(role_name,role_description)
+		values(#{role_name},#{role_description})
+	</insert>
+	
+	<!-- 分配权限 -->
+	<insert id="assignMenu" parameterType="map">
+		insert into t_role_menu(roleid,menuid)
+		values(#{roleid},#{menuid})
+	</insert>
+	
+	<!-- 删除角色信息 -->
+	<delete id="del" parameterType="java.lang.Integer">
+		delete from t_role where role_id = #{id}
+	</delete>
+	
+	<!-- 删除权限 -->
+	<delete id="delMenu" parameterType="java.lang.Integer">
+		delete from t_role_menu where roleid = #{id}
+	</delete>
+	
+	<!-- 修改角色信息 -->
+	<update id="update" parameterType="Role">
+		update t_role 
+		<set>
+			<if test="role_name != null and role_name != ''">
+				role_name = #{role_name},
+			</if>
+			<if test="role_description != null and role_description != ''">
+				role_description = #{role_description},
+			</if>
+		</set>
+		where role_id = #{role_id}
+	</update>
+	
+	<select id="notinload" resultType="Menu">
+		select * from t_menu where menu_id not in
+		<foreach collection="list" item="item" index="i" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+	<select id="inload" parameterType="java.lang.Integer" resultMap="roleMap">
+		select * from t_role r
+		left join t_role_menu rm on r.role_id = rm.roleid
+		left join t_menu m on rm.menuid = m.menu_id
+		where r.role_id = #{id}
+	</select>
+
+	<!-- 根据id查询角色信息 -->
+	<select id="load" parameterType="java.lang.Integer" resultMap="roleMap">
+		select r.*,
+		GROUP_CONCAT(m.menu_name) menuNameList,
+		GROUP_CONCAT(m.menu_id) menuId,
+		GROUP_CONCAT(m.parent_id) parentId,
+		GROUP_CONCAT(m.menu_flag) menuFlag
+		from t_role r
+		left join t_role_menu rm on r.role_id = rm.roleid
+		left join t_menu m on rm.menuid = m.menu_id
+		where r.role_id = #{id}
+		group by r.role_id
+	</select>
+	
+	<!-- 查询角色全部信息 -->
+	<select id="list" resultMap="roleMap">
+		select *,GROUP_CONCAT(m.menu_name) menuNameList from t_role r
+		left join t_role_menu rm on r.role_id = rm.roleid
+		left join t_menu m on rm.menuid = m.menu_id
+		group by r.role_id
+	</select>
+	
+</mapper>

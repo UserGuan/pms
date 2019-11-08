@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<!-- 开启二级缓存 -->
+	<settings>
+		<setting name="cacheEnabled" value="true" />
+	</settings>
+	<!-- 自动配置类的别名 -->
+	<typeAliases>
+		<package name="com.pms.entity" />
+	</typeAliases>
+	<!-- mybatis分页工具pagehelper的配置，或者是在spring-mybatis.xml配置文件中加<property name="plugins"> -->
+	<plugins>
+		<plugin interceptor="com.github.pagehelper.PageInterceptor">
+			<!--指定数据库连接类型，此属性可以自动检测，不配置也可以 -->
+			<property name="helperDialect" value="mysql" />
+			<!--分页合理化参数，默认文false；pageNum<=0，查询第一页；pageNum>总页数，查询最后一页 -->
+			<property name="reasonable" value="true" />
+		</plugin>
+	</plugins>
+</configuration>

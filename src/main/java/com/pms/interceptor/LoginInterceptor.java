@@ -1,18 +1,16 @@
 package com.pms.interceptor;
 
+import com.pms.entity.User;
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
-
-import com.pms.entity.User;
-
 public class LoginInterceptor implements HandlerInterceptor {
 
 	/**
-	 * 
 	 * @Title: preHandle
 	 * @Description: 该方法在Controller业务方法执行之前执行，其返回值为boolean类型。
 	 *               则紧接着会执行controller方法，且会将afterCompletion()方法压栈进入入到一个专门的方法栈中等待执行。
