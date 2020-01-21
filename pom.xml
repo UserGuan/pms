@@ -18,7 +18,7 @@
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
     <!-- Spring版本号 -->
-    <spring.version>5.1.5.RELEASE</spring.version>
+    <spring.version>5.2.3.RELEASE</spring.version>
     <!-- aspectj—springAOP依赖版本号 -->
     <aspect.version>1.9.1</aspect.version>
     <!-- json包jackson-annotations版本号 -->
